@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -8,7 +7,6 @@ import Leaderboard from './pages/Leaderboard';
 import Profile from './pages/Profile';
 import Battle from './pages/Battle';
 import Settings from './pages/Settings';
-import Friends from './pages/Friends';
 
 // Ultra-Strict Security Component
 const Security = () => {
@@ -106,15 +104,10 @@ const App: React.FC = () => {
           {/* Public Profile Route */}
           <Route path="/profile/:userId" element={<Profile />} />
 
-          {/* Protected Routes */}
+          {/* Protected Profile Route */}
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/friends" element={
-            <ProtectedRoute>
-              <Friends />
             </ProtectedRoute>
           } />
         </Routes>
