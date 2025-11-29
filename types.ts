@@ -24,7 +24,6 @@ export interface User {
   maxWPM?: number;
   banned?: boolean;
   gameHistory?: GameHistory[];
-  status?: 'online' | 'offline'; // Added status
 }
 
 export interface BattlePlayer {

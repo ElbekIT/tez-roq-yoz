@@ -9,64 +9,55 @@ import Profile from './pages/Profile';
 import Battle from './pages/Battle';
 import Settings from './pages/Settings';
 import Friends from './pages/Friends';
-import { getDatabase, ref, onDisconnect, set, onValue } from 'firebase/database';
 
-// Presence & Security Component
-const AppManager = () => {
+// Ultra-Strict Security Component
+const Security = () => {
   useEffect(() => {
-    // --- Security Logic ---
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       return false;
     };
     
     const handleKeyDown = (e: KeyboardEvent) => {
-      // F12, Ctrl+Shift+I/C/J, Ctrl+U, Ctrl+S
-      if (e.keyCode === 123 || 
-         (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) || 
-         (e.ctrlKey && [85, 83].includes(e.keyCode))) {
+      // F12
+      if (e.keyCode === 123) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+Shift+J (Console/Inspect)
+      if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 67 || e.keyCode === 74)) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Ctrl+U (View Source)
+      if (e.ctrlKey && (e.keyCode === 85)) {
+        e.preventDefault();
+        return false;
+      }
+
+      // Ctrl+S (Save)
+      if (e.ctrlKey && (e.keyCode === 83)) {
         e.preventDefault();
         return false;
       }
     };
 
+    // DevTools Detection Loop (Debugger Trap)
     const devToolsDetector = setInterval(() => {
       const startTime = performance.now();
-      // debugger; 
+      // debugger; // This triggers breakpoint if devtools is open
       const endTime = performance.now();
       if (endTime - startTime > 100) {
         // Devtools detected
+        alert("Xavfsizlik tizimi: Dasturchi vositalarini ishlatish taqiqlangan!");
+        window.location.reload();
       }
     }, 1000);
 
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('keydown', handleKeyDown);
-
-    // --- Presence Logic (Online/Offline) ---
-    const userStr = localStorage.getItem('sozUser');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      const db = getDatabase();
-      const connectedRef = ref(db, ".info/connected");
-      const userStatusRef = ref(db, "users/" + user.uid + "/status");
-
-      const unsubscribe = onValue(connectedRef, (snap) => {
-        if (snap.val() === true) {
-          // We're connected (or reconnected)!
-          onDisconnect(userStatusRef).set("offline");
-          set(userStatusRef, "online");
-        }
-      });
-
-      return () => {
-        document.removeEventListener('contextmenu', handleContextMenu);
-        document.removeEventListener('keydown', handleKeyDown);
-        clearInterval(devToolsDetector);
-        unsubscribe();
-        // Set offline when component unmounts (e.g. closing window)
-        set(userStatusRef, "offline");
-      };
-    }
 
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
@@ -103,7 +94,7 @@ const App: React.FC = () => {
   return (
     <HashRouter>
       <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-accent selection:text-bg-primary transition-colors duration-200">
-        <AppManager />
+        <Security />
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />

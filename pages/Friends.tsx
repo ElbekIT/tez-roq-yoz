@@ -12,7 +12,6 @@ const Friends: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const [liveStatuses, setLiveStatuses] = useState<Record<string, string>>({});
   
   const db = getDatabase();
   const navigate = useNavigate();
@@ -27,16 +26,7 @@ const Friends: React.FC = () => {
     onValue(friendsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const friendsList = Object.values(data) as any[];
-        setFriends(friendsList);
-        
-        // Setup listener for online statuses of friends
-        friendsList.forEach(friend => {
-          const statusRef = ref(db, `users/${friend.uid}/status`);
-          onValue(statusRef, (snap) => {
-            setLiveStatuses(prev => ({...prev, [friend.uid]: snap.val() || 'offline'}));
-          });
-        });
+        setFriends(Object.values(data));
       } else {
         setFriends([]);
       }
@@ -161,35 +151,26 @@ const Friends: React.FC = () => {
       {activeTab === 'list' && (
         <div className="grid gap-4">
           {friends.length > 0 ? (
-            friends.map((friend) => {
-              const status = liveStatuses[friend.uid] || 'offline';
-              return (
-                <div key={friend.uid} className="bg-bg-secondary border border-bg-tertiary rounded-xl p-4 flex items-center justify-between hover:border-accent transition-colors">
-                  <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate(`/profile/${friend.uid}`)}>
-                    <div className="relative">
-                      {friend.photoURL ? (
-                        <img src={friend.photoURL} alt={friend.name} className="w-12 h-12 rounded-full border-2 border-bg-tertiary" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center font-bold text-lg">
-                          {friend.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-bg-secondary ${status === 'online' ? 'bg-success' : 'bg-gray-500'}`}></div>
+            friends.map((friend) => (
+              <div key={friend.uid} className="bg-bg-secondary border border-bg-tertiary rounded-xl p-4 flex items-center justify-between hover:border-accent transition-colors">
+                <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate(`/profile/${friend.uid}`)}>
+                  {friend.photoURL ? (
+                    <img src={friend.photoURL} alt={friend.name} className="w-12 h-12 rounded-full border-2 border-bg-tertiary" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center font-bold text-lg">
+                      {friend.name.charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-text-primary flex items-center gap-2">
-                        {friend.name}
-                        {status === 'online' && <span className="text-[10px] text-success font-normal border border-success/30 px-1 rounded">ON</span>}
-                      </h3>
-                      <p className="text-xs text-text-secondary">{status === 'online' ? 'Online' : 'Offline'}</p>
-                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-bold text-text-primary">{friend.name}</h3>
+                    <p className="text-xs text-text-secondary">Do'st</p>
                   </div>
-                  <button className="p-2 bg-bg-primary rounded-lg text-text-secondary hover:text-accent hover:bg-bg-tertiary transition-colors" title="Xabar yozish">
-                    <MessageSquare className="w-5 h-5" />
-                  </button>
                 </div>
-              );
-            })
+                <button className="p-2 bg-bg-primary rounded-lg text-text-secondary hover:text-accent hover:bg-bg-tertiary transition-colors" title="Xabar yozish">
+                  <MessageSquare className="w-5 h-5" />
+                </button>
+              </div>
+            ))
           ) : (
             <div className="text-center py-20 text-text-secondary bg-bg-secondary/20 rounded-xl">
               <Users className="w-16 h-16 mx-auto mb-4 opacity-20" />
@@ -220,10 +201,10 @@ const Friends: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => acceptRequest(req)} className="p-2 bg-success text-white rounded-lg hover:opacity-90 transition-opacity" title="Qabul qilish">
+                  <button onClick={() => acceptRequest(req)} className="p-2 bg-success text-white rounded-lg hover:opacity-90 transition-opacity">
                     <Check className="w-5 h-5" />
                   </button>
-                  <button onClick={() => rejectRequest(req.requestId)} className="p-2 bg-error text-white rounded-lg hover:opacity-90 transition-opacity" title="Rad etish">
+                  <button onClick={() => rejectRequest(req.requestId)} className="p-2 bg-error text-white rounded-lg hover:opacity-90 transition-opacity">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
