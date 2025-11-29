@@ -102,7 +102,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const App: React.FC = () => {
   return (
     <HashRouter>
-      <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-accent selection:text-bg-primary transition-colors duration-200">
+      <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-accent selection:text-bg-primary">
         <AppManager />
         <Navbar />
         <Routes>
