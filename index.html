@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tez Roq Yoz - Professional Typing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              mono: ['var(--font-family)', 'monospace'],
+            },
+            colors: {
+              bg: {
+                primary: 'var(--bg-primary)',
+                secondary: 'var(--bg-secondary)',
+                tertiary: 'var(--bg-tertiary)',
+              },
+              text: {
+                primary: 'var(--text-primary)',
+                secondary: 'var(--text-secondary)',
+              },
+              accent: 'var(--accent)',
+              error: 'var(--error)',
+              success: 'var(--success)',
+            },
+            animation: {
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'caret': 'caret var(--animation-duration, 1s) infinite',
+            },
+            keyframes: {
+              caret: {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '0' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      :root {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2c2c2c;
+        --bg-tertiary: #3c3c3c;
+        --text-primary: #e2b714;
+        --text-secondary: #646669;
+        --accent: #e2b714;
+        --error: #ef4444;
+        --success: #4ade80;
+        --font-family: "JetBrains Mono";
+        --animation-duration: 1s;
+      }
+
+      [data-theme="light"] {
+        --bg-primary: #e8e8e8;
+        --bg-secondary: #ffffff;
+        --bg-tertiary: #d1d1d1;
+        --text-primary: #333333;
+        --text-secondary: #666666;
+        --accent: #0077ff;
+      }
+
+      [data-theme="blue"] {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #60a5fa;
+        --text-secondary: #94a3b8;
+        --accent: #3b82f6;
+      }
+
+      [data-theme="green"] {
+        --bg-primary: #052e16;
+        --bg-secondary: #064e3b;
+        --bg-tertiary: #065f46;
+        --text-primary: #4ade80;
+        --text-secondary: #a7f3d0;
+        --accent: #22c55e;
+      }
+
+      [data-theme="purple"] {
+        --bg-primary: #2e1065;
+        --bg-secondary: #4c1d95;
+        --bg-tertiary: #5b21b6;
+        --text-primary: #c084fc;
+        --text-secondary: #e9d5ff;
+        --accent: #a855f7;
+      }
+
+      body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: var(--font-family), monospace;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        user-select: none; /* Text selection disabled */
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-primary);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent);
+      }
+    </style>
+    <script>
+      function showInsult() {
+        alert("Urinma! Baribir hech nima qilolmaysan.\nKod senga emas! 🚫🤬");
+
+        document.body.innerHTML = `
+          <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:black;color:crimson;font-size:30px;font-family:'Arial';text-align:center;padding:20px;">
+            <div>
+              <p>🚨 URINMA! 🚨</p>
+              <p>Sen nimani bosma, kodni ololmaysan!</p>
+              <p><b>Сайтни сносиман, бошқа қайтма!</b></p>
+              <p><i>你无论按什么键，都无法看到源代码！</i></p>
+              <p><u>Кодни олиш мумкин эмас, ахмоқ!</u></p>
+            </div>
+          </div>
+        `;
+      }
+
+      const blockedKeys = ['u', 'U', 'g', 'G', 'п', 'П', 'c', 'C', 's', 'S', 'i', 'I', 'j', 'J'];
+
+      window.addEventListener("keydown", function (e) {
+        const key = e.key.toLowerCase();
+        
+        // Bloklanadigan tugmalar
+        if (
+          e.keyCode === 123 || // F12
+          (e.ctrlKey && blockedKeys.includes(e.key)) || // Ctrl + [U, C, G, П, S, I, J...]
+          (e.ctrlKey && e.shiftKey && blockedKeys.includes(e.key))
+        ) {
+          e.preventDefault();
+          showInsult();
+        }
+      });
+
+      // O'ng tugma (Right Click)
+      window.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+        showInsult();
+      });
+
+      // Copy event (mouse bilan select qilib Ctrl+C qilmoqchi bo‘lsa)
+      document.addEventListener("copy", function (e) {
+        e.preventDefault();
+        showInsult();
+      });
+
+      // DevTools aniqlash (konsol ochilganini sezadi)
+      (function devtoolsDetector() {
+        const detector = new Function("debugger");
+        setInterval(() => detector(), 100);
+      })();
+
+      // Iframe dan himoya
+      if (window.top !== window.self) {
+        window.top.location = window.self.location;
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
