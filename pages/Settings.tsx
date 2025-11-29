@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Moon, Sun, Monitor, Type, Volume2, Gamepad2, Trash2, RefreshCcw } from 'lucide-react';
 
@@ -31,11 +32,11 @@ const Settings: React.FC = () => {
   }, [theme, font, fontSize, defaultTime, soundEnabled, smoothCaret]);
 
   const themes = [
-    { id: 'dark', name: 'Dark (Default)', color: '#1a1a1a' },
+    { id: 'dark', name: 'Dark', color: '#1a1a1a' },
     { id: 'light', name: 'Light', color: '#ffffff' },
-    { id: 'blue', name: 'Midnight Blue', color: '#0f172a' },
-    { id: 'green', name: 'Forest Green', color: '#052e16' },
-    { id: 'purple', name: 'Deep Purple', color: '#2e1065' },
+    { id: 'blue', name: 'Blue', color: '#0f172a' },
+    { id: 'green', name: 'Green', color: '#052e16' },
+    { id: 'purple', name: 'Purple', color: '#2e1065' },
   ];
 
   const fonts = ['JetBrains Mono', 'Roboto Mono', 'Fira Code'];
@@ -53,17 +54,17 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full px-4 py-8 font-mono">
-      <h1 className="text-3xl font-bold text-text-primary mb-8 flex items-center gap-3">
-        <Monitor className="w-8 h-8 text-accent" />
+    <div className="max-w-4xl mx-auto w-full px-4 py-8 font-mono pb-24">
+      <h1 className="text-2xl md:text-3xl font-bold text-text-primary mb-8 flex items-center gap-3">
+        <Monitor className="w-6 h-6 md:w-8 md:h-8 text-accent" />
         Sozlamalar
       </h1>
 
-      <div className="grid gap-8">
+      <div className="grid gap-6 md:gap-8">
         
         {/* Appearance Section */}
-        <section className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+        <section className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-4 md:p-6">
+          <h2 className="text-lg md:text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
             <Type className="w-5 h-5 text-accent" />
             Ko'rinish (Appearance)
           </h2>
@@ -71,7 +72,7 @@ const Settings: React.FC = () => {
           <div className="space-y-6">
             {/* Theme */}
             <div>
-              <label className="block text-text-secondary text-sm font-bold mb-3 uppercase tracking-wider">Mavzu (Theme)</label>
+              <label className="block text-text-secondary text-xs md:text-sm font-bold mb-3 uppercase tracking-wider">Mavzu (Theme)</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {themes.map((t) => (
                   <button
@@ -79,8 +80,8 @@ const Settings: React.FC = () => {
                     onClick={() => setTheme(t.id)}
                     className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${theme === t.id ? 'border-accent bg-bg-tertiary' : 'border-bg-tertiary hover:bg-bg-primary'}`}
                   >
-                    <div className="w-8 h-8 rounded-full shadow-lg" style={{ backgroundColor: t.color }}></div>
-                    <span className="text-xs font-medium text-text-secondary">{t.name}</span>
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-full shadow-lg" style={{ backgroundColor: t.color }}></div>
+                    <span className="text-[10px] md:text-xs font-medium text-text-secondary">{t.name}</span>
                   </button>
                 ))}
               </div>
@@ -88,13 +89,13 @@ const Settings: React.FC = () => {
 
             {/* Font Family */}
             <div>
-              <label className="block text-text-secondary text-sm font-bold mb-3 uppercase tracking-wider">Shrift Turi</label>
+              <label className="block text-text-secondary text-xs md:text-sm font-bold mb-3 uppercase tracking-wider">Shrift Turi</label>
               <div className="flex flex-wrap gap-2">
                 {fonts.map((f) => (
                   <button
                     key={f}
                     onClick={() => setFont(f)}
-                    className={`px-4 py-2 rounded-lg text-sm border transition-all ${font === f ? 'bg-accent text-bg-primary border-accent font-bold' : 'bg-bg-primary text-text-secondary border-bg-tertiary hover:border-text-secondary'}`}
+                    className={`px-3 py-2 md:px-4 md:py-2 rounded-lg text-xs md:text-sm border transition-all ${font === f ? 'bg-accent text-bg-primary border-accent font-bold' : 'bg-bg-primary text-text-secondary border-bg-tertiary hover:border-text-secondary'}`}
                     style={{ fontFamily: f }}
                   >
                     {f}
@@ -105,7 +106,7 @@ const Settings: React.FC = () => {
 
             {/* Font Size */}
             <div>
-              <label className="block text-text-secondary text-sm font-bold mb-3 uppercase tracking-wider">Shrift O'lchami: {fontSize}px</label>
+              <label className="block text-text-secondary text-xs md:text-sm font-bold mb-3 uppercase tracking-wider">Shrift O'lchami: {fontSize}px</label>
               <input 
                 type="range" 
                 min="12" 
@@ -119,8 +120,8 @@ const Settings: React.FC = () => {
         </section>
 
         {/* Game Behavior Section */}
-        <section className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
+        <section className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-4 md:p-6">
+          <h2 className="text-lg md:text-xl font-bold text-text-primary mb-6 flex items-center gap-2">
             <Gamepad2 className="w-5 h-5 text-accent" />
             O'yin (Game)
           </h2>
@@ -128,15 +129,15 @@ const Settings: React.FC = () => {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Default Time */}
             <div>
-              <label className="block text-text-secondary text-sm font-bold mb-3 uppercase tracking-wider">Standart Vaqt</label>
-              <div className="flex gap-2 bg-bg-primary p-1 rounded-lg w-fit border border-bg-tertiary">
+              <label className="block text-text-secondary text-xs md:text-sm font-bold mb-3 uppercase tracking-wider">Standart Vaqt</label>
+              <div className="flex gap-2 bg-bg-primary p-1 rounded-lg w-fit border border-bg-tertiary overflow-x-auto max-w-full">
                 {[15, 30, 60, 120].map((t) => (
                   <button
                     key={t}
                     onClick={() => setDefaultTime(t)}
-                    className={`px-4 py-1.5 rounded-md text-sm transition-all ${defaultTime === t ? 'bg-accent text-bg-primary font-bold shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                    className={`px-3 py-1.5 md:px-4 md:py-1.5 rounded-md text-xs md:text-sm transition-all whitespace-nowrap ${defaultTime === t ? 'bg-accent text-bg-primary font-bold shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
                   >
-                    {t}
+                    {t}s
                   </button>
                 ))}
               </div>
@@ -147,26 +148,26 @@ const Settings: React.FC = () => {
               <div className="flex items-center justify-between p-3 bg-bg-primary rounded-xl border border-bg-tertiary">
                 <div className="flex items-center gap-3">
                   <Volume2 className={`w-5 h-5 ${soundEnabled ? 'text-accent' : 'text-text-secondary'}`} />
-                  <span className="text-text-primary font-medium">Tovush effektlari</span>
+                  <span className="text-text-primary font-medium text-sm md:text-base">Tovush effektlari</span>
                 </div>
                 <button 
                   onClick={() => setSoundEnabled(!soundEnabled)}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${soundEnabled ? 'bg-accent' : 'bg-bg-tertiary'}`}
+                  className={`w-10 h-5 md:w-12 md:h-6 rounded-full p-1 transition-colors duration-300 ${soundEnabled ? 'bg-accent' : 'bg-bg-tertiary'}`}
                 >
-                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${soundEnabled ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                  <div className={`w-3 h-3 md:w-4 md:h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${soundEnabled ? 'translate-x-5 md:translate-x-6' : 'translate-x-0'}`}></div>
                 </button>
               </div>
 
               <div className="flex items-center justify-between p-3 bg-bg-primary rounded-xl border border-bg-tertiary">
                 <div className="flex items-center gap-3">
                   <div className="w-5 h-5 flex items-center justify-center font-serif italic text-accent">I</div>
-                  <span className="text-text-primary font-medium">Silliq kursor (Smooth Caret)</span>
+                  <span className="text-text-primary font-medium text-sm md:text-base">Silliq kursor</span>
                 </div>
                 <button 
                   onClick={() => setSmoothCaret(!smoothCaret)}
-                  className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${smoothCaret ? 'bg-accent' : 'bg-bg-tertiary'}`}
+                  className={`w-10 h-5 md:w-12 md:h-6 rounded-full p-1 transition-colors duration-300 ${smoothCaret ? 'bg-accent' : 'bg-bg-tertiary'}`}
                 >
-                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${smoothCaret ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                  <div className={`w-3 h-3 md:w-4 md:h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${smoothCaret ? 'translate-x-5 md:translate-x-6' : 'translate-x-0'}`}></div>
                 </button>
               </div>
             </div>
@@ -174,8 +175,8 @@ const Settings: React.FC = () => {
         </section>
 
         {/* Danger Zone */}
-        <section className="bg-error/5 border border-error/20 rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-error mb-6 flex items-center gap-2">
+        <section className="bg-error/5 border border-error/20 rounded-2xl p-4 md:p-6">
+          <h2 className="text-lg md:text-xl font-bold text-error mb-6 flex items-center gap-2">
             <Trash2 className="w-5 h-5" />
             Xavfli Hudud
           </h2>
@@ -183,7 +184,7 @@ const Settings: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <button 
               onClick={resetSettings}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-bg-primary text-text-primary border border-bg-tertiary rounded-xl hover:bg-bg-secondary hover:border-text-secondary transition-all"
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-bg-primary text-text-primary border border-bg-tertiary rounded-xl hover:bg-bg-secondary hover:border-text-secondary transition-all text-sm md:text-base"
             >
               <RefreshCcw className="w-4 h-4" />
               Sozlamalarni tiklash
@@ -191,7 +192,7 @@ const Settings: React.FC = () => {
             
             <button 
               onClick={() => alert("Hozircha hisobni o'chirish imkoni yo'q, lekin biz ustida ishlayapmiz!")}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-error/10 text-error border border-error/20 rounded-xl hover:bg-error hover:text-white transition-all"
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-error/10 text-error border border-error/20 rounded-xl hover:bg-error hover:text-white transition-all text-sm md:text-base"
             >
               <Trash2 className="w-4 h-4" />
               Hisobni o'chirish

@@ -1,7 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import { getDatabase, ref, onValue, query, orderByChild, limitToLast } from 'firebase/database';
 import { User } from '../types';
-import { Trophy, Crown, Medal, Calendar } from 'lucide-react';
+import { Trophy, Crown, Medal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Leaderboard: React.FC = () => {
@@ -48,9 +49,9 @@ const Leaderboard: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-start w-full max-w-6xl mx-auto px-4 py-12 font-mono">
-      <div className="flex flex-col gap-2 mb-8">
-        <h1 className="text-3xl text-text-primary">All-time Score Leaderboard</h1>
+    <div className="flex flex-col items-start w-full max-w-6xl mx-auto px-4 py-6 md:py-12 font-mono pb-24">
+      <div className="flex flex-col gap-2 mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl text-text-primary">All-time Score Leaderboard</h1>
         <p className="text-text-secondary text-sm">Top 50 typists by total score</p>
       </div>
 
@@ -59,17 +60,17 @@ const Leaderboard: React.FC = () => {
           <div className="w-8 h-8 border-2 border-bg-tertiary border-t-accent rounded-full animate-spin"></div>
         </div>
       ) : (
-        <div className="w-full overflow-x-auto rounded-lg">
-          <div className="min-w-[800px] w-full">
+        <div className="w-full overflow-x-auto rounded-lg -mx-4 md:mx-0 px-4 md:px-0">
+          <div className="min-w-[600px] md:min-w-[800px] w-full">
             {/* Header */}
-            <div className="grid grid-cols-12 gap-4 px-4 py-3 text-xs text-text-secondary uppercase tracking-wider font-bold">
+            <div className="grid grid-cols-12 gap-2 md:gap-4 px-4 py-3 text-xs text-text-secondary uppercase tracking-wider font-bold">
               <div className="col-span-1 text-center">#</div>
-              <div className="col-span-4 pl-2">Name</div>
-              <div className="col-span-1 text-right">WPM</div>
-              <div className="col-span-1 text-right">Acc</div>
-              <div className="col-span-2 text-right">Games</div>
-              <div className="col-span-2 text-right">Score</div>
-              <div className="col-span-1 text-right">Date</div>
+              <div className="col-span-5 md:col-span-4 pl-2">Name</div>
+              <div className="col-span-1 text-right hidden md:block">WPM</div>
+              <div className="col-span-1 text-right hidden md:block">Acc</div>
+              <div className="col-span-2 text-right hidden md:block">Games</div>
+              <div className="col-span-3 md:col-span-2 text-right">Score</div>
+              <div className="col-span-2 md:col-span-1 text-right hidden md:block">Date</div>
             </div>
 
             {/* List */}
@@ -78,7 +79,7 @@ const Leaderboard: React.FC = () => {
                 <div 
                   key={index}
                   onClick={() => handleRowClick(user.uid)}
-                  className={`grid grid-cols-12 gap-4 px-4 py-3 items-center rounded bg-bg-secondary/50 hover:bg-bg-secondary transition-colors border-l-4 cursor-pointer ${index === 0 ? 'border-yellow-400' : 'border-transparent'}`}
+                  className={`grid grid-cols-12 gap-2 md:gap-4 px-4 py-3 items-center rounded bg-bg-secondary/50 hover:bg-bg-secondary transition-colors border-l-4 cursor-pointer ${index === 0 ? 'border-yellow-400' : 'border-transparent'}`}
                 >
                   {/* Rank */}
                   <div className="col-span-1 flex justify-center">
@@ -92,7 +93,7 @@ const Leaderboard: React.FC = () => {
                   </div>
 
                   {/* Name & Avatar */}
-                  <div className="col-span-4 flex items-center gap-3 pl-2">
+                  <div className="col-span-5 md:col-span-4 flex items-center gap-3 pl-2">
                     {user.photoURL ? (
                       <img 
                         src={user.photoURL} 
@@ -104,39 +105,36 @@ const Leaderboard: React.FC = () => {
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <div className="flex items-center gap-2">
-                      <span className={`${index === 0 ? 'text-text-primary font-bold' : 'text-text-primary'} truncate max-w-[200px]`}>
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <span className={`${index === 0 ? 'text-text-primary font-bold' : 'text-text-primary'} truncate max-w-[120px] md:max-w-[200px]`}>
                         {user.name}
                       </span>
                       {index === 0 && (
-                        <span className="text-[10px] bg-yellow-400/10 text-yellow-400 px-1.5 py-0.5 rounded font-bold">
+                        <span className="text-[10px] bg-yellow-400/10 text-yellow-400 px-1.5 py-0.5 rounded font-bold hidden sm:inline-block">
                           KING
-                        </span>
-                      )}
-                      {user.score && user.score > 1000 && (
-                        <span className="text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded font-bold">
-                          PRO
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Stats */}
-                  <div className="col-span-1 text-right text-text-primary">
+                  {/* Stats - Hidden on Mobile */}
+                  <div className="col-span-1 text-right text-text-primary hidden md:block">
                     {Math.round(user.avgWPM || 0)}
                   </div>
-                  <div className="col-span-1 text-right text-text-primary">
+                  <div className="col-span-1 text-right text-text-primary hidden md:block">
                     {Math.round(user.accuracy || 0)}%
                   </div>
-                  <div className="col-span-2 text-right text-text-primary">
+                  <div className="col-span-2 text-right text-text-primary hidden md:block">
                     {user.gamesPlayed || 0}
                   </div>
-                  <div className="col-span-2 text-right font-bold text-accent">
+                  
+                  {/* Score */}
+                  <div className="col-span-3 md:col-span-2 text-right font-bold text-accent">
                     {Math.floor(user.score || 0).toLocaleString()}
                   </div>
                   
-                  {/* Date */}
-                  <div className="col-span-1 text-right text-xs text-text-secondary whitespace-nowrap">
+                  {/* Date - Hidden on Mobile */}
+                  <div className="col-span-1 text-right text-xs text-text-secondary whitespace-nowrap hidden md:block">
                     {user.registeredAt ? formatDate(user.registeredAt) : '-'}
                   </div>
                 </div>
