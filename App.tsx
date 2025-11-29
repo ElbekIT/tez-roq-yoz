@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -102,7 +101,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const App: React.FC = () => {
   return (
     <HashRouter>
-      <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-accent selection:text-bg-primary">
+      <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-accent selection:text-bg-primary relative overflow-x-hidden">
         <AppManager />
         <Navbar />
         <Routes>

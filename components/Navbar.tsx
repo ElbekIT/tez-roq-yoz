@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Keyboard, Trophy, User, Users, Swords, LogOut, LogIn, Settings, Home } from 'lucide-react';
@@ -45,15 +44,15 @@ const Navbar: React.FC = () => {
     }
   };
 
-  // Helper to scroll to top on navigation to ensure fresh view
+  // Helper to scroll to top on navigation instantly for snappy feel
   const onNavClick = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   };
 
   return (
     <>
       {/* Desktop Navbar */}
-      <nav className="flex items-center justify-between px-4 md:px-8 py-4 max-w-7xl mx-auto w-full sticky top-0 z-[999] bg-bg-primary/95 backdrop-blur-md border-b border-transparent transition-all duration-300">
+      <nav className="flex items-center justify-between px-4 md:px-8 py-4 max-w-7xl mx-auto w-full sticky top-0 z-[9999] bg-bg-primary/95 backdrop-blur-md border-b border-transparent transition-all duration-300 select-none">
         <Link to="/" onClick={onNavClick} className="flex items-center gap-3 group">
           <Keyboard className="w-8 h-8 text-accent group-hover:animate-pulse transition-transform group-hover:scale-110" />
           <div className="flex flex-col">
@@ -138,28 +137,28 @@ const Navbar: React.FC = () => {
       </nav>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-bg-secondary/95 backdrop-blur-md border-t border-bg-tertiary z-[999] px-6 py-2 pb-safe shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.3)]">
+      <div className="md:hidden fixed bottom-0 left-0 w-full bg-bg-secondary/95 backdrop-blur-md border-t border-bg-tertiary z-[9999] px-6 py-2 pb-safe shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.3)] touch-manipulation select-none">
         <div className="flex justify-between items-center max-w-sm mx-auto">
-          <Link to="/" onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 transition-colors ${isActive('/') ? 'text-accent' : 'text-text-secondary'}`}>
+          <Link to="/" onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 transition-colors active:scale-95 ${isActive('/') ? 'text-accent' : 'text-text-secondary'}`}>
             <Home className="w-6 h-6" />
             <span className="text-[10px] font-medium">Uya</span>
           </Link>
-          <Link to="/leaderboard" onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 transition-colors ${isActive('/leaderboard') ? 'text-accent' : 'text-text-secondary'}`}>
+          <Link to="/leaderboard" onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 transition-colors active:scale-95 ${isActive('/leaderboard') ? 'text-accent' : 'text-text-secondary'}`}>
             <Trophy className="w-6 h-6" />
             <span className="text-[10px] font-medium">Reyting</span>
           </Link>
-          <Link to="/battle" onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 transition-colors ${isActive('/battle') ? 'text-accent' : 'text-text-secondary'}`}>
+          <Link to="/battle" onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 transition-colors active:scale-95 ${isActive('/battle') ? 'text-accent' : 'text-text-secondary'}`}>
             <Swords className="w-6 h-6" />
             <span className="text-[10px] font-medium">Battle</span>
           </Link>
           {user && (
-             <Link to="/friends" onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 relative transition-colors ${isActive('/friends') ? 'text-accent' : 'text-text-secondary'}`}>
+             <Link to="/friends" onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 relative transition-colors active:scale-95 ${isActive('/friends') ? 'text-accent' : 'text-text-secondary'}`}>
                <Users className="w-6 h-6" />
                {requestCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>}
                <span className="text-[10px] font-medium">Do'stlar</span>
              </Link>
           )}
-          <Link to={user ? "/profile" : "/register"} onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 transition-colors ${isActive('/profile') || isActive('/register') ? 'text-accent' : 'text-text-secondary'}`}>
+          <Link to={user ? "/profile" : "/register"} onClick={onNavClick} className={`flex flex-col items-center gap-1 p-2 transition-colors active:scale-95 ${isActive('/profile') || isActive('/register') ? 'text-accent' : 'text-text-secondary'}`}>
             {user && user.photoURL ? (
                 <img src={user.photoURL} alt="Profile" className={`w-6 h-6 rounded-full border ${isActive('/profile') ? 'border-accent' : 'border-transparent'} object-cover`} />
             ) : (
