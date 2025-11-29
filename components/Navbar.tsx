@@ -1,15 +1,31 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Keyboard, Trophy, User, Users, Swords, LogOut, LogIn, Settings, Home } from 'lucide-react';
 import { auth } from '../firebase';
 import { User as UserType } from '../types';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const userStr = localStorage.getItem('sozUser');
   const user: UserType | null = userStr ? JSON.parse(userStr) : null;
+  const [requestCount, setRequestCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      const db = getDatabase();
+      const requestsRef = ref(db, `users/${user.uid}/friendRequests`);
+      onValue(requestsRef, (snapshot) => {
+        if (snapshot.exists()) {
+          setRequestCount(Object.keys(snapshot.val()).length);
+        } else {
+          setRequestCount(0);
+        }
+      });
+    }
+  }, [user?.uid]);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -52,8 +68,11 @@ const Navbar: React.FC = () => {
           {user && (
             <>
               <div className="w-px h-5 bg-bg-tertiary mx-1"></div>
-              <Link to="/friends" className={`p-2 rounded-lg transition-all ${isActive('/friends') ? 'text-accent bg-bg-tertiary' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/50'}`} title="Do'stlar">
+              <Link to="/friends" className={`p-2 rounded-lg transition-all relative ${isActive('/friends') ? 'text-accent bg-bg-tertiary' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/50'}`} title="Do'stlar">
                 <Users className="w-5 h-5" />
+                {requestCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+                )}
               </Link>
               <Link to="/profile" className={`p-2 rounded-lg transition-all ${isActive('/profile') ? 'text-accent bg-bg-tertiary' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/50'}`} title="Profil">
                 <User className="w-5 h-5" />
@@ -123,6 +142,13 @@ const Navbar: React.FC = () => {
             <Swords className="w-6 h-6" />
             <span className="text-[10px] font-medium">Battle</span>
           </Link>
+          {user && (
+             <Link to="/friends" className={`flex flex-col items-center gap-1 p-2 relative ${isActive('/friends') ? 'text-accent' : 'text-text-secondary'}`}>
+               <Users className="w-6 h-6" />
+               {requestCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>}
+               <span className="text-[10px] font-medium">Do'stlar</span>
+             </Link>
+          )}
           <Link to={user ? "/profile" : "/register"} className={`flex flex-col items-center gap-1 p-2 ${isActive('/profile') || isActive('/register') ? 'text-accent' : 'text-text-secondary'}`}>
             {user && user.photoURL ? (
                 <img src={user.photoURL} alt="Profile" className={`w-6 h-6 rounded-full border ${isActive('/profile') ? 'border-accent' : 'border-transparent'}`} />
@@ -130,10 +156,6 @@ const Navbar: React.FC = () => {
                 <User className="w-6 h-6" />
             )}
             <span className="text-[10px] font-medium">{user ? 'Profil' : 'Kirish'}</span>
-          </Link>
-          <Link to="/settings" className={`flex flex-col items-center gap-1 p-2 ${isActive('/settings') ? 'text-accent' : 'text-text-secondary'}`}>
-            <Settings className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Sozlama</span>
           </Link>
         </div>
       </div>
