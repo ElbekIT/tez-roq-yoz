@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Swords, Users, Lock, Trophy, Play, Clock, Crown, AlertTriangle, Copy, LogOut } from 'lucide-react';
-import { getDatabase, ref, set, get, onValue, update, remove, push, serverTimestamp } from 'firebase/database';
+import { Swords, Users, LogOut, Play, Clock, Copy, ArrowRight, UserPlus } from 'lucide-react';
+import { getDatabase, ref, set, get, onValue, update, remove } from 'firebase/database';
 import { Room, BattlePlayer, User } from '../types';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,12 +25,12 @@ const Battle: React.FC = () => {
   const [roomCode, setRoomCode] = useState('');
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [joinCode, setJoinCode] = useState('');
+  const [onlineFriends, setOnlineFriends] = useState<User[]>([]);
   
   // Game State
   const [text, setText] = useState('');
   const [input, setInput] = useState('');
   const [wpm, setWpm] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isFinished, setIsFinished] = useState(false);
@@ -45,8 +45,33 @@ const Battle: React.FC = () => {
   useEffect(() => {
     if (!currentUser) {
       navigate('/register');
+      return;
     }
-  }, [currentUser, navigate]);
+
+    // Fetch Online Friends
+    const friendsRef = ref(db, `users/${currentUser.uid}/friends`);
+    onValue(friendsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const friendsList = Object.values(data) as any[];
+        const online: User[] = [];
+        friendsList.forEach(friend => {
+          const statusRef = ref(db, `users/${friend.uid}/status`);
+          onValue(statusRef, (snap) => {
+            if (snap.val() === 'online') {
+              // Avoid duplicates if re-triggering
+              setOnlineFriends(prev => {
+                if (prev.find(f => f.uid === friend.uid)) return prev;
+                return [...prev, friend];
+              });
+            } else {
+              setOnlineFriends(prev => prev.filter(f => f.uid !== friend.uid));
+            }
+          });
+        });
+      }
+    });
+  }, [currentUser, navigate, db]);
 
   // Sync Room Data
   useEffect(() => {
@@ -58,10 +83,7 @@ const Battle: React.FC = () => {
       if (data) {
         setCurrentRoom(data);
         
-        // Handle Status Changes
-        if (data.status === 'starting' && view !== 'race') {
-           // Countdown logic handling in UI
-        } else if (data.status === 'racing' && view !== 'race') {
+        if (data.status === 'racing' && view !== 'race') {
            setView('race');
            setText(data.text);
            setStartTime(Date.now());
@@ -70,7 +92,6 @@ const Battle: React.FC = () => {
            setView('results');
         }
       } else {
-        // Room deleted
         if (view !== 'lobby') {
           alert("Xona yopildi.");
           leaveRoom(true);
@@ -115,7 +136,8 @@ const Battle: React.FC = () => {
   const joinRoom = async () => {
     if (!joinCode || !currentUser) return;
     
-    const roomRef = ref(db, `rooms/${joinCode.toUpperCase()}`);
+    const code = joinCode.toUpperCase();
+    const roomRef = ref(db, `rooms/${code}`);
     const snapshot = await get(roomRef);
     
     if (snapshot.exists()) {
@@ -135,11 +157,11 @@ const Battle: React.FC = () => {
         finished: false
       };
 
-      await update(ref(db, `rooms/${joinCode.toUpperCase()}/players`), {
+      await update(ref(db, `rooms/${code}/players`), {
         [currentUser.uid]: newPlayer
       });
       
-      setRoomCode(joinCode.toUpperCase());
+      setRoomCode(code);
       setView('room');
     } else {
       alert("Xona topilmadi!");
@@ -168,7 +190,6 @@ const Battle: React.FC = () => {
     setCurrentRoom(null);
     setIsFinished(false);
     setInput('');
-    setProgress(0);
     setWpm(0);
   };
 
@@ -176,7 +197,6 @@ const Battle: React.FC = () => {
     if (!roomCode) return;
     await update(ref(db, `rooms/${roomCode}`), { status: 'starting' });
     
-    // Countdown simulation
     let count = 5;
     const interval = setInterval(() => {
       setCountdown(count);
@@ -195,21 +215,15 @@ const Battle: React.FC = () => {
     const value = e.target.value;
     setInput(value);
 
-    // Calculate Progress
     const progressVal = Math.min(100, Math.round((value.length / text.length) * 100));
-    
-    // Calculate WPM
     const words = value.trim().split(' ').length;
     const minutes = (Date.now() - (currentRoom?.startTime || Date.now())) / 60000;
     const currentWpm = Math.round(words / minutes) || 0;
 
-    // Accuracy
     let correct = 0;
     for(let i=0; i<value.length; i++) if(value[i] === text[i]) correct++;
     const acc = Math.round((correct / value.length) * 100) || 100;
 
-    // Update Firebase
-    // Optimization: Throttle updates in real app
     await update(ref(db, `rooms/${roomCode}/players/${currentUser.uid}`), {
       progress: progressVal,
       wpm: currentWpm,
@@ -220,11 +234,10 @@ const Battle: React.FC = () => {
       setIsFinished(true);
       await update(ref(db, `rooms/${roomCode}/players/${currentUser.uid}`), {
         finished: true,
-        wpm: currentWpm, // Final WPM
+        wpm: currentWpm,
         progress: 100
       });
       
-      // Check if everyone finished
       const allFinished = Object.values(currentRoom?.players || {}).every(p => p.finished || p.uid === currentUser.uid);
       if (allFinished) {
         await update(ref(db, `rooms/${roomCode}`), { status: 'finished' });
@@ -242,8 +255,6 @@ const Battle: React.FC = () => {
     });
   };
 
-  // --- VIEWS ---
-
   if (view === 'lobby') {
     return (
       <div className="max-w-4xl mx-auto w-full px-4 py-8 flex flex-col items-center font-mono pb-24">
@@ -253,118 +264,170 @@ const Battle: React.FC = () => {
         </div>
         <p className="text-text-secondary mb-10 text-center text-sm md:text-base">Do'stlar bilan bellashing va kim eng tez ekanligini aniqlang!</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl mb-8">
+          {/* Join Section */}
+          <div className="bg-bg-secondary border-2 border-bg-tertiary rounded-2xl p-8 flex flex-col items-center shadow-lg">
+            <div className="bg-bg-primary w-14 h-14 rounded-full flex items-center justify-center mb-4">
+              <Users className="w-7 h-7 text-success" />
+            </div>
+            <h3 className="text-xl font-bold text-text-primary mb-2">Poygaga Qo'shilish</h3>
+            <p className="text-sm text-text-secondary mb-4">Do'stingizdan kodni oling</p>
+            <div className="flex gap-2 w-full">
+              <input 
+                type="text" 
+                placeholder="KOD"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && joinRoom()}
+                className="flex-1 bg-bg-primary border border-bg-tertiary rounded-lg px-3 py-3 text-center uppercase font-bold outline-none focus:border-accent text-lg tracking-widest"
+              />
+              <button 
+                onClick={joinRoom}
+                className="bg-accent text-bg-primary font-bold px-4 rounded-lg hover:opacity-90 flex items-center justify-center"
+              >
+                <ArrowRight className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Create Section */}
           <div 
             onClick={createRoom}
-            className="bg-bg-secondary border-2 border-bg-tertiary hover:border-accent rounded-2xl p-8 cursor-pointer transition-all group text-center flex flex-col items-center"
+            className="bg-bg-secondary border-2 border-bg-tertiary hover:border-accent rounded-2xl p-8 cursor-pointer transition-all group text-center flex flex-col items-center shadow-lg"
           >
-            <div className="bg-bg-primary w-16 h-16 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Swords className="w-8 h-8 text-accent" />
+            <div className="bg-bg-primary w-14 h-14 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Swords className="w-7 h-7 text-accent" />
             </div>
             <h3 className="text-xl font-bold text-text-primary mb-2">Poyga Yaratish</h3>
             <p className="text-sm text-text-secondary">Yangi xona oching</p>
           </div>
-
-          <div className="bg-bg-secondary border-2 border-bg-tertiary rounded-2xl p-8 text-center flex flex-col items-center">
-            <div className="bg-bg-primary w-16 h-16 rounded-full flex items-center justify-center mb-4">
-              <Users className="w-8 h-8 text-success" />
-            </div>
-            <h3 className="text-xl font-bold text-text-primary mb-4">Poygaga Qo'shilish</h3>
-            <div className="flex gap-2 w-full">
-              <input 
-                type="text" 
-                placeholder="Xona kodi"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
-                className="flex-1 bg-bg-primary border border-bg-tertiary rounded-lg px-3 py-2 text-center uppercase font-bold outline-none focus:border-accent"
-              />
-              <button 
-                onClick={joinRoom}
-                className="bg-accent text-bg-primary font-bold px-4 rounded-lg hover:opacity-90"
-              >
-                Go
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
-    );
-  }
 
-  if (view === 'room') {
-    const isHost = currentRoom?.hostId === currentUser?.uid;
-    const playersList = Object.values(currentRoom?.players || {});
-
-    return (
-      <div className="max-w-2xl mx-auto w-full px-4 py-12 font-mono">
-        <div className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-8 text-center">
-          {countdown !== null ? (
-            <div className="text-9xl font-bold text-accent animate-pulse">{countdown}</div>
-          ) : (
-            <>
-              <div className="mb-8">
-                <h2 className="text-text-secondary text-sm uppercase tracking-widest mb-2">Xona Kodi</h2>
-                <div className="flex items-center justify-center gap-4">
-                  <span className="text-4xl font-bold text-accent tracking-wider">{roomCode}</span>
-                  <button onClick={() => navigator.clipboard.writeText(roomCode)} className="p-2 hover:bg-bg-tertiary rounded-lg text-text-secondary">
-                    <Copy className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <h3 className="text-lg font-bold text-text-primary mb-4 flex items-center justify-center gap-2">
-                  <Users className="w-5 h-5" />
-                  O'yinchilar ({playersList.length})
-                </h3>
-                <div className="flex flex-wrap justify-center gap-4">
-                  {playersList.map(p => (
-                    <div key={p.uid} className="flex flex-col items-center gap-2">
-                      {p.photoURL ? (
-                        <img src={p.photoURL} className="w-12 h-12 rounded-full border-2 border-bg-tertiary" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center font-bold text-xl">{p.name.charAt(0)}</div>
-                      )}
-                      <span className="text-xs text-text-primary">{p.name}</span>
-                      {currentRoom?.hostId === p.uid && <span className="text-[10px] bg-accent/20 text-accent px-2 rounded">HOST</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-4 justify-center">
-                <button 
-                  onClick={() => leaveRoom()}
-                  className="px-6 py-3 bg-bg-primary border border-bg-tertiary rounded-xl text-text-secondary hover:text-error hover:border-error transition-colors flex items-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" /> Chiqish
-                </button>
-                {isHost && (
+        {/* Online Friends List for Challenge */}
+        <div className="w-full max-w-3xl bg-bg-secondary border border-bg-tertiary rounded-xl p-6">
+          <h3 className="text-text-primary font-bold mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-success"></span>
+            Online Do'stlar
+          </h3>
+          {onlineFriends.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {onlineFriends.map(friend => (
+                <div key={friend.uid} className="flex items-center justify-between bg-bg-primary p-3 rounded-lg border border-bg-tertiary">
+                  <div className="flex items-center gap-3">
+                    {friend.photoURL ? (
+                      <img src={friend.photoURL} className="w-8 h-8 rounded-full" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-xs font-bold">{friend.name.charAt(0)}</div>
+                    )}
+                    <span className="text-sm font-bold text-text-primary">{friend.name}</span>
+                  </div>
                   <button 
-                    onClick={startRace}
-                    className="px-8 py-3 bg-accent text-bg-primary font-bold rounded-xl hover:bg-opacity-90 transition-transform hover:scale-105 flex items-center gap-2"
+                    onClick={async () => {
+                      await createRoom();
+                      // In a real app, send invite notification here.
+                      // For now, just create room and user can copy code.
+                    }}
+                    className="text-xs bg-bg-tertiary hover:bg-accent hover:text-bg-primary px-3 py-1.5 rounded transition-colors"
                   >
-                    <Play className="w-4 h-4" /> Boshlash
+                    Battle!
                   </button>
-                )}
-              </div>
-              {!isHost && <p className="mt-4 text-xs text-text-secondary animate-pulse">Host boshlashini kuting...</p>}
-            </>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-text-secondary text-sm text-center py-4">Hozircha hech kim online emas.</p>
           )}
         </div>
       </div>
     );
   }
 
+  // Room, Race, Results views remain similar but ensure updated UI consistency...
+  if (view === 'room') {
+    const isHost = currentRoom?.hostId === currentUser?.uid;
+    const playersList = Object.values(currentRoom?.players || {});
+
+    return (
+      <div className="max-w-2xl mx-auto w-full px-4 py-12 font-mono">
+        <div className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-8 text-center relative overflow-hidden">
+          {countdown !== null ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-bg-secondary z-50">
+              <div className="text-9xl font-bold text-accent animate-pulse">{countdown}</div>
+            </div>
+          ) : null}
+          
+          <div className="mb-8">
+            <h2 className="text-text-secondary text-sm uppercase tracking-widest mb-2">Xona Kodi</h2>
+            <div className="flex items-center justify-center gap-4 bg-bg-primary py-4 rounded-xl border border-bg-tertiary w-fit mx-auto px-8">
+              <span className="text-4xl font-bold text-accent tracking-wider">{roomCode}</span>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(roomCode);
+                  alert("Kod nusxalandi!");
+                }} 
+                className="p-2 hover:bg-bg-tertiary rounded-lg text-text-secondary"
+              >
+                <Copy className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-text-secondary mt-2">Ushbu kodni do'stlaringizga yuboring</p>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-text-primary mb-4 flex items-center justify-center gap-2">
+              <Users className="w-5 h-5" />
+              O'yinchilar ({playersList.length})
+            </h3>
+            <div className="flex flex-wrap justify-center gap-4">
+              {playersList.map(p => (
+                <div key={p.uid} className="flex flex-col items-center gap-2 animate-in fade-in zoom-in duration-300">
+                  <div className="relative">
+                    {p.photoURL ? (
+                      <img src={p.photoURL} className="w-14 h-14 rounded-full border-2 border-bg-tertiary" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-bg-tertiary flex items-center justify-center font-bold text-xl">{p.name.charAt(0)}</div>
+                    )}
+                    {currentRoom?.hostId === p.uid && (
+                      <span className="absolute -top-2 -right-2 text-xs bg-accent text-bg-primary px-1.5 py-0.5 rounded-full font-bold border border-bg-primary">HOST</span>
+                    )}
+                  </div>
+                  <span className="text-xs text-text-primary font-bold">{p.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-4 justify-center">
+            <button 
+              onClick={() => leaveRoom()}
+              className="px-6 py-3 bg-bg-primary border border-bg-tertiary rounded-xl text-text-secondary hover:text-error hover:border-error transition-colors flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" /> Chiqish
+            </button>
+            {isHost && (
+              <button 
+                onClick={startRace}
+                className="px-8 py-3 bg-accent text-bg-primary font-bold rounded-xl hover:bg-opacity-90 transition-transform hover:scale-105 flex items-center gap-2 shadow-lg shadow-accent/20"
+              >
+                <Play className="w-4 h-4" /> Boshlash
+              </button>
+            )}
+          </div>
+          {!isHost && <p className="mt-4 text-xs text-text-secondary animate-pulse">Host boshlashini kuting...</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // Reuse Race and Results view from previous implementation logic, just ensure styling matches
   if (view === 'race') {
     const playersList = Object.values(currentRoom?.players || {}).sort((a, b) => b.progress - a.progress);
 
     return (
       <div className="max-w-5xl mx-auto w-full px-4 py-8 font-mono flex flex-col gap-8">
-        {/* Progress Bars */}
         <div className="grid gap-3">
           {playersList.map(p => (
-            <div key={p.uid} className={`bg-bg-secondary p-3 rounded-xl border ${p.uid === currentUser?.uid ? 'border-accent' : 'border-bg-tertiary'}`}>
+            <div key={p.uid} className={`bg-bg-secondary p-3 rounded-xl border ${p.uid === currentUser?.uid ? 'border-accent' : 'border-bg-tertiary'} transition-all duration-300`}>
               <div className="flex justify-between text-xs mb-1">
                 <span className="font-bold text-text-primary flex items-center gap-2">
                   {p.name} {p.finished && '🏁'}
@@ -381,13 +444,12 @@ const Battle: React.FC = () => {
           ))}
         </div>
 
-        {/* Typing Area */}
         {!isFinished ? (
           <div 
             className="relative w-full text-2xl leading-relaxed font-mono min-h-[150px] outline-none group cursor-text bg-bg-secondary/20 p-6 rounded-2xl border border-bg-tertiary"
             onClick={() => inputRef.current?.focus()}
           >
-            <div className="pointer-events-none">
+            <div className="pointer-events-none select-none">
               {renderText()}
             </div>
             <input
@@ -401,7 +463,7 @@ const Battle: React.FC = () => {
             />
           </div>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-3xl font-bold text-success mb-2">Tugadi!</h2>
             <p className="text-text-secondary">Boshqalar tugatishini kuting...</p>
           </div>
@@ -415,9 +477,9 @@ const Battle: React.FC = () => {
 
     return (
       <div className="max-w-2xl mx-auto w-full px-4 py-12 font-mono">
-        <div className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-8">
+        <div className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-8 shadow-2xl">
           <h2 className="text-2xl font-bold text-center text-text-primary mb-8 flex items-center justify-center gap-3">
-            <Trophy className="w-8 h-8 text-yellow-400" />
+            <Swords className="w-8 h-8 text-accent" />
             Natijalar
           </h2>
 
